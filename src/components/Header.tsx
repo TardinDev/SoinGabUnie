@@ -4,7 +4,7 @@ import Animated from 'react-native-reanimated';
 import type { User } from '../types';
 
 interface HeaderProps {
-  user: User | null;
+  user: User | undefined;
   unreadNotificationsCount: number;
   onNotificationPress: () => void;
 }
