@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Pressable, Image } from 'react-native';
+import { View, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, runOnJS } from 'react-native-reanimated';
 import { getAllProviders, getNotifications, getCurrentUser, getUnreadNotificationsCount, getUpcomingEventsCount } from '../../utils/mockData';
+import { Header, NotificationPanel, FilterChips, ServiceGrid, DeliverySection, ProviderSection } from '../../components';
 import type { ServiceType, Provider, Notification, User } from '../../types';
 
 const SERVICES = [
@@ -133,315 +134,45 @@ export default function HomeScreen() {
       style={{ paddingTop: insets.top }}
     >
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View className="px-6 py-6">
-          <View className="flex-row items-center justify-between mb-4">
-            <Text className="text-3xl font-bold"
-                  style={{ color: '#8A5CF6' }}>
-              SoinGabUnie
-            </Text>
+        <Header
+          user={user}
+          unreadNotificationsCount={unreadNotificationsCount}
+          onNotificationPress={toggleNotifications}
+        />
 
-            <View className="flex-row items-center space-x-4">
-              {/* Notification Icon */}
-              <Pressable
-                className="relative"
-                onPress={toggleNotifications}
-              >
-                <Text className="text-2xl">🔔</Text>
-                {unreadNotificationsCount > 0 && (
-                  <View className="absolute -top-1 -right-1 w-5 h-5 bg-accent-alert rounded-full items-center justify-center">
-                    <Text className="text-white text-xs font-bold">
-                      {unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}
-                    </Text>
-                  </View>
-                )}
-              </Pressable>
+        <NotificationPanel
+          notifications={notifications}
+          animatedStyle={animatedNotificationStyle}
+        />
 
-              {/* User Profile */}
-              <Pressable>
-                {user ? (
-                  <View className="w-10 h-10 rounded-full overflow-hidden border-2 border-accent-primary">
-                    <Image
-                      source={{ uri: user.avatar }}
-                      className="w-full h-full"
-                      style={{ resizeMode: 'cover' }}
-                    />
-                  </View>
-                ) : (
-                  <View className="w-10 h-10 rounded-full bg-background-surface border-2 border-border items-center justify-center">
-                    <Text className="text-xl">👤</Text>
-                  </View>
-                )}
-              </Pressable>
-            </View>
-          </View>
+        <FilterChips
+          filters={FILTER_CHIPS}
+          activeFilters={activeFilters}
+          onToggleFilter={toggleFilter}
+        />
 
-          <Text className="text-text-secondary text-base">
-            {user
-              ? `Bonjour ${user.name.split(' ')[0]} ! Trouvez les meilleurs soins de santé`
-              : 'Trouvez les meilleurs soins de santé au Gabon'
-            }
-          </Text>
-        </View>
+        <DeliverySection onDeliveryPress={navigateToCategory} />
 
-        {/* Notifications Content */}
-        {notifications.filter(n => !n.isRead).length > 0 && (
-          <Animated.View style={[animatedNotificationStyle]} className="px-6 mb-6">
-            <Text className="text-text-primary text-lg font-semibold mb-3">
-              Notifications récentes
-            </Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <View className="flex-row space-x-4">
-                {notifications
-                  .filter(n => !n.isRead)
-                  .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-                  .slice(0, 4)
-                  .map((notification) => (
-                    <Pressable
-                      key={notification.id}
-                      className={`w-80 rounded-2xl p-4 border ${
-                        notification.priority === 'urgent'
-                          ? 'bg-red-600/10 border-red-600/30'
-                          : notification.priority === 'high'
-                            ? 'bg-orange-600/10 border-orange-600/30'
-                            : 'bg-background-surface border-border'
-                      }`}
-                    >
-                      <View className="flex-row items-start justify-between mb-2">
-                        <Text className={`font-semibold text-sm flex-1 ${
-                          notification.priority === 'urgent'
-                            ? 'text-red-200'
-                            : notification.priority === 'high'
-                              ? 'text-orange-200'
-                              : 'text-text-primary'
-                        }`}>
-                          {notification.title}
-                        </Text>
-                        <Text className={`text-lg ${
-                          notification.type === 'delivery' ? '🏍️' :
-                          notification.type === 'pharmacy' ? '💊' :
-                          notification.type === 'doctor' ? '👨‍⚕️' :
-                          notification.type === 'clinic' ? '🏥' :
-                          notification.type === 'hospital' ? '🏨' :
-                          notification.type === 'tradipractitioner' ? '🌿' : '📢'
-                        }`}>
-                        </Text>
-                      </View>
-                      <Text className={`text-xs leading-4 mb-2 ${
-                        notification.priority === 'urgent'
-                          ? 'text-red-200/80'
-                          : notification.priority === 'high'
-                            ? 'text-orange-200/80'
-                            : 'text-text-secondary'
-                      }`}>
-                        {notification.message.length > 100
-                          ? `${notification.message.substring(0, 100)}...`
-                          : notification.message
-                        }
-                      </Text>
-                      {notification.fromProvider && (
-                        <Text className="text-xs text-accent-primary font-medium">
-                          De: {notification.fromProvider}
-                        </Text>
-                      )}
-                    </Pressable>
-                  ))}
-              </View>
-            </ScrollView>
-          </Animated.View>
-        )}
+        <ServiceGrid
+          services={SERVICES}
+          upcomingEventsCount={upcomingEventsCount}
+          animatedFireStyle={animatedFireStyle}
+          onServicePress={navigateToCategory}
+        />
 
+        <ProviderSection
+          title="Proche de vous"
+          providers={nearbyProviders}
+          onProviderPress={navigateToProvider}
+          variant="nearby"
+        />
 
-        {/* Filter Chips */}
-        <View className="px-6 mb-8">
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <View className="flex-row space-x-3">
-              {FILTER_CHIPS.map((filter) => (
-                <Pressable
-                  key={filter.id}
-                  onPress={() => toggleFilter(filter.id)}
-                  className={`px-4 py-2 rounded-full border ${
-                    activeFilters.includes(filter.id)
-                      ? 'bg-accent-primary border-accent-primary'
-                      : 'bg-background-surface border-border'
-                  }`}
-                >
-                  <Text
-                    className={`text-sm font-medium ${
-                      activeFilters.includes(filter.id)
-                        ? 'text-white'
-                        : 'text-text-secondary'
-                    }`}
-                  >
-                    {filter.label}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-          </ScrollView>
-        </View>
-
-        {/* Delivery Section */}
-        <View className="px-6 mb-8">
-          <Pressable
-            onPress={() => navigateToCategory('delivery')}
-            className="bg-orange-600 rounded-2xl p-6 active:opacity-90"
-          >
-            <View className="flex-row items-center justify-between">
-              <View className="flex-1">
-                <Text className="text-white text-xl font-bold mb-2">
-                  Livraison Express 🏍️
-                </Text>
-                <Text className="text-orange-100 text-sm mb-3">
-                  Commandez vos médicaments et recevez-les rapidement
-                </Text>
-                <View className="flex-row items-center">
-                  <View className="bg-orange-700 px-3 py-1 rounded-full mr-2">
-                    <Text className="text-orange-100 text-xs font-medium">
-                      AirtelMoney
-                    </Text>
-                  </View>
-                  <View className="bg-orange-700 px-3 py-1 rounded-full">
-                    <Text className="text-orange-100 text-xs font-medium">
-                      MoovMoney
-                    </Text>
-                  </View>
-                </View>
-              </View>
-              <View className="w-16 h-16 bg-white bg-opacity-20 rounded-full items-center justify-center">
-                <Text className="text-2xl">🚚</Text>
-              </View>
-            </View>
-          </Pressable>
-        </View>
-
-        {/* Services Grid */}
-        <View className="px-6 mb-8">
-          <Text className="text-text-primary text-xl font-bold mb-4">
-            Services
-          </Text>
-          <View className="flex-row flex-wrap justify-between">
-            {SERVICES.map((service, index) => (
-              <Pressable
-                key={service.type}
-                onPress={() => navigateToCategory(service.type)}
-                className={`w-[48%] h-32 bg-background-surface border border-border rounded-2xl overflow-hidden mb-4 active:opacity-80 ${
-                  index === SERVICES.length - 1 && SERVICES.length % 2 !== 0 ? 'w-full' : ''
-                }`}
-              >
-                <View className="h-full relative">
-                  <View className="flex-[3] w-full">
-                    <Image
-                      source={{ uri: service.image }}
-                      className="w-full h-full"
-                      style={{ resizeMode: 'cover' }}
-                    />
-                  </View>
-                  <View className="flex-[1] px-3 py-2 justify-center">
-                    {service.type === 'tradipractitioner' ? (
-                      <View className="flex-row items-center justify-center space-x-1">
-                        <Text className="text-text-primary font-semibold text-center text-sm">
-                          {service.title}
-                        </Text>
-                        <Animated.View style={[animatedFireStyle]} className="flex-row items-center">
-                          <Text style={{ fontSize: 14 }}>🔥</Text>
-                          <View className="bg-accent-alert rounded-full px-1.5 py-0.5 ml-1">
-                            <Text className="text-white text-xs font-bold">{upcomingEventsCount}</Text>
-                          </View>
-                        </Animated.View>
-                      </View>
-                    ) : (
-                      <Text className="text-text-primary font-semibold text-center text-sm">
-                        {service.title}
-                      </Text>
-                    )}
-                  </View>
-                </View>
-              </Pressable>
-            ))}
-          </View>
-        </View>
-
-        {/* Nearby Section */}
-        <View className="px-6 mb-8">
-          <Text className="text-text-primary text-xl font-bold mb-4">
-            Proche de vous
-          </Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <View className="flex-row space-x-4">
-              {nearbyProviders.map((provider) => (
-                <Pressable
-                  key={provider.id}
-                  onPress={() => navigateToProvider(provider.id)}
-                  className="w-64 bg-background-surface border border-border rounded-2xl p-4 active:opacity-80"
-                >
-                  <View className="flex-row items-center justify-between mb-2">
-                    <Text className="text-text-primary font-semibold text-base flex-1">
-                      {provider.name}
-                    </Text>
-                    <View className={`px-2 py-1 rounded-full ${
-                      provider.isOpen ? 'bg-accent-secondary' : 'bg-accent-alert'
-                    }`}>
-                      <Text className="text-white text-xs font-medium">
-                        {provider.isOpen ? 'Ouvert' : 'Fermé'}
-                      </Text>
-                    </View>
-                  </View>
-                  <Text className="text-text-secondary text-sm mb-3">
-                    {provider.distance} km • ⭐ {provider.rating}
-                  </Text>
-                  <View className="flex-row flex-wrap">
-                    {provider.tags.slice(0, 2).map((tag: string, index: number) => (
-                      <View key={index} className="bg-background-primary px-2 py-1 rounded mr-2 mb-1">
-                        <Text className="text-text-secondary text-xs">{tag}</Text>
-                      </View>
-                    ))}
-                  </View>
-                </Pressable>
-              ))}
-            </View>
-          </ScrollView>
-        </View>
-
-        {/* Popular Section */}
-        <View className="px-6 mb-8">
-          <Text className="text-text-primary text-xl font-bold mb-4">
-            Populaires
-          </Text>
-          <View className="space-y-3">
-            {popularProviders.map((provider) => (
-              <Pressable
-                key={provider.id}
-                onPress={() => navigateToProvider(provider.id)}
-                className="bg-background-surface border border-border rounded-2xl p-4 active:opacity-80"
-              >
-                <View className="flex-row items-start justify-between">
-                  <View className="flex-1">
-                    <Text className="text-text-primary font-semibold text-base mb-1">
-                      {provider.name}
-                    </Text>
-                    <Text className="text-text-secondary text-sm mb-2">
-                      {provider.distance} km • ⭐ {provider.rating} ({provider.reviewCount} avis)
-                    </Text>
-                    <Text className="text-text-secondary text-sm leading-5">
-                      {provider.description.length > 80
-                        ? `${provider.description.substring(0, 80)}...`
-                        : provider.description
-                      }
-                    </Text>
-                  </View>
-                  <View className={`ml-3 px-2 py-1 rounded-full ${
-                    provider.isOpen ? 'bg-accent-secondary' : 'bg-accent-alert'
-                  }`}>
-                    <Text className="text-white text-xs font-medium">
-                      {provider.isOpen ? 'Ouvert' : 'Fermé'}
-                    </Text>
-                  </View>
-                </View>
-              </Pressable>
-            ))}
-          </View>
-        </View>
+        <ProviderSection
+          title="Populaires"
+          providers={popularProviders}
+          onProviderPress={navigateToProvider}
+          variant="popular"
+        />
       </ScrollView>
     </View>
   );
