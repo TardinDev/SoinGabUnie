@@ -1,4 +1,4 @@
-import type { Provider } from '../types';
+import type { Provider, Notification, Message, User } from '../types';
 
 export const mockProviders: Provider[] = [
   {
@@ -185,6 +185,69 @@ export const mockProviders: Provider[] = [
   },
 ];
 
+export const mockNotifications: Notification[] = [
+  {
+    id: '1',
+    title: 'Livraison acceptée',
+    message: 'Jean-Marie Express a accepté votre demande de livraison. Il vous contactera sous peu.',
+    type: 'delivery',
+    fromProvider: 'Jean-Marie Express',
+    providerId: '6',
+    timestamp: '2024-03-15T10:30:00Z',
+    isRead: false,
+    priority: 'high',
+    actionType: 'delivery_accepted',
+  },
+  {
+    id: '2',
+    title: 'Médicaments prêts',
+    message: 'Vos médicaments sont prêts à la Pharmacie Centrale. Code: PH123A4',
+    type: 'pharmacy',
+    fromProvider: 'Pharmacie Centrale',
+    providerId: '1',
+    timestamp: '2024-03-15T09:15:00Z',
+    isRead: false,
+    priority: 'normal',
+    actionType: 'prescription_ready',
+  },
+  {
+    id: '3',
+    title: 'Rappel rendez-vous',
+    message: 'Votre rendez-vous avec Dr. Marie Moussavou est demain à 14h00.',
+    type: 'doctor',
+    fromProvider: 'Dr. Marie Moussavou',
+    providerId: '2',
+    timestamp: '2024-03-14T18:00:00Z',
+    isRead: true,
+    priority: 'normal',
+    actionType: 'appointment_reminder',
+  },
+  {
+    id: '4',
+    title: 'Livreur en route',
+    message: 'Sophie Moto-Livraison est en route. Arrivée estimée dans 15 minutes.',
+    type: 'delivery',
+    fromProvider: 'Sophie Moto-Livraison',
+    providerId: '7',
+    timestamp: '2024-03-15T11:45:00Z',
+    isRead: false,
+    priority: 'urgent',
+    actionType: 'delivery_arriving',
+  },
+  {
+    id: '5',
+    title: 'Consultation confirmée',
+    message: 'Votre consultation à la Clinique de la Sablière est confirmée pour le 16 mars à 10h00.',
+    type: 'clinic',
+    fromProvider: 'Clinique de la Sablière',
+    providerId: '3',
+    timestamp: '2024-03-14T16:20:00Z',
+    isRead: true,
+    priority: 'normal',
+    actionType: 'booking_confirmed',
+  },
+];
+
 export const getProvidersByType = (type: Provider['type']) =>
   mockProviders.filter((provider) => provider.type === type);
 
@@ -192,3 +255,56 @@ export const getProviderById = (id: string) =>
   mockProviders.find((provider) => provider.id === id);
 
 export const getAllProviders = () => mockProviders;
+
+export const mockMessages: Message[] = [
+  {
+    id: '1',
+    fromProvider: 'Jean-Marie Express',
+    providerId: '6',
+    providerType: 'delivery',
+    content: 'Bonjour ! Je suis en route pour récupérer vos médicaments à la pharmacie. J\'arrive dans 20 minutes.',
+    timestamp: '2024-03-15T11:30:00Z',
+    isRead: false,
+    isFromUser: false,
+  },
+  {
+    id: '2',
+    fromProvider: 'Dr. Marie Moussavou',
+    providerId: '2',
+    providerType: 'doctor',
+    content: 'Merci pour votre consultation. N\'oubliez pas de prendre vos médicaments 2 fois par jour.',
+    timestamp: '2024-03-14T15:45:00Z',
+    isRead: true,
+    isFromUser: false,
+  },
+  {
+    id: '3',
+    fromProvider: 'Pharmacie Centrale',
+    providerId: '1',
+    providerType: 'pharmacy',
+    content: 'Votre commande est prête ! Code de retrait : PH123A4. Nous fermons à 20h.',
+    timestamp: '2024-03-15T09:00:00Z',
+    isRead: false,
+    isFromUser: false,
+  },
+];
+
+export const mockUser: User = {
+  id: '1',
+  name: 'Marie Ndong',
+  avatar: 'https://images.unsplash.com/photo-1494790108755-2616b332c738?w=100&h=100&fit=crop&crop=face&q=80',
+  phone: '+241 XX XX XX XX',
+  email: 'marie.ndong@example.com',
+};
+
+export const getNotifications = () => mockNotifications;
+
+export const getMessages = () => mockMessages;
+
+export const getCurrentUser = () => null; // Pas d'utilisateur connecté pour l'instant
+
+export const getUnreadNotificationsCount = () =>
+  mockNotifications.filter(notification => !notification.isRead).length;
+
+export const getUnreadMessagesCount = () =>
+  mockMessages.filter(message => !message.isRead).length;

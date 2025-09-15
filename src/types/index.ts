@@ -59,3 +59,35 @@ export interface Medication {
   price: number;
   prescription?: string;
 }
+
+export interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  type: 'delivery' | 'pharmacy' | 'doctor' | 'clinic' | 'hospital' | 'tradipractitioner' | 'system';
+  fromProvider?: string;
+  providerId?: string;
+  timestamp: string;
+  isRead: boolean;
+  priority: 'low' | 'normal' | 'high' | 'urgent';
+  actionType?: 'booking_confirmed' | 'delivery_accepted' | 'delivery_arriving' | 'prescription_ready' | 'appointment_reminder' | 'payment_due';
+}
+
+export interface Message {
+  id: string;
+  fromProvider: string;
+  providerId: string;
+  providerType: 'delivery' | 'pharmacy' | 'doctor' | 'clinic' | 'hospital' | 'tradipractitioner';
+  content: string;
+  timestamp: string;
+  isRead: boolean;
+  isFromUser: boolean;
+}
+
+export interface User {
+  id: string;
+  name: string;
+  avatar?: string;
+  phone: string;
+  email?: string;
+}

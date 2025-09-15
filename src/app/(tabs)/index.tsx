@@ -3,8 +3,9 @@ import { View, Text, ScrollView, Pressable, Image } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
-import { getAllProviders } from '../../utils/mockData';
-import type { ServiceType, Provider } from '../../types';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, runOnJS } from 'react-native-reanimated';
+import { getAllProviders, getNotifications, getCurrentUser, getUnreadNotificationsCount } from '../../utils/mockData';
+import type { ServiceType, Provider, Notification, User } from '../../types';
 
 const SERVICES = [
   { type: 'pharmacy' as ServiceType, title: 'Pharmacie', color: 'bg-blue-600', image: 'https://www.pod.fr/wp-content/uploads/2020/05/dans-quelle-ville-acheter-sa-pharmacie-1.jpg' },
@@ -22,7 +23,11 @@ const FILTER_CHIPS = [
 
 export default function HomeScreen() {
   const [activeFilters, setActiveFilters] = useState(['nearby']);
+  const [showNotifications, setShowNotifications] = useState(false);
   const insets = useSafeAreaInsets();
+
+  const notificationOpacity = useSharedValue(0);
+  const notificationHeight = useSharedValue(0);
 
   const { data: providers = [] } = useQuery({
     queryKey: ['providers'],
@@ -33,12 +38,43 @@ export default function HomeScreen() {
     },
   });
 
+  const { data: notifications = [] } = useQuery({
+    queryKey: ['notifications'],
+    queryFn: async (): Promise<Notification[]> => {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      return getNotifications();
+    },
+  });
+
+  const { data: user } = useQuery({
+    queryKey: ['user'],
+    queryFn: async (): Promise<User> => {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      return getCurrentUser();
+    },
+  });
+
+  const unreadNotificationsCount = getUnreadNotificationsCount();
+
   const toggleFilter = (filterId: string) => {
     setActiveFilters(prev =>
       prev.includes(filterId)
         ? prev.filter(f => f !== filterId)
         : [...prev, filterId]
     );
+  };
+
+  const toggleNotifications = () => {
+    if (showNotifications) {
+      notificationOpacity.value = withTiming(0, { duration: 300 });
+      notificationHeight.value = withTiming(0, { duration: 300 }, () => {
+        runOnJS(setShowNotifications)(false);
+      });
+    } else {
+      setShowNotifications(true);
+      notificationOpacity.value = withTiming(1, { duration: 400 });
+      notificationHeight.value = withTiming(1, { duration: 400 });
+    }
   };
 
   const navigateToCategory = (type: ServiceType) => {
@@ -52,6 +88,14 @@ export default function HomeScreen() {
   const nearbyProviders = providers.slice(0, 3);
   const popularProviders = providers.filter(p => p.rating >= 4.5).slice(0, 3);
 
+  const animatedNotificationStyle = useAnimatedStyle(() => {
+    return {
+      opacity: notificationOpacity.value,
+      height: notificationHeight.value * 200, // Hauteur maximale de 200px
+      overflow: 'hidden',
+    };
+  });
+
   return (
     <View
       className="flex-1 bg-background-primary"
@@ -60,13 +104,121 @@ export default function HomeScreen() {
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View className="px-6 py-6">
-          <Text className="text-text-primary text-3xl font-bold mb-2">
-            SoinGabUnie
-          </Text>
+          <View className="flex-row items-center justify-between mb-4">
+            <Text className="text-3xl font-bold"
+                  style={{ color: '#8A5CF6' }}>
+              SoinGabUnie
+            </Text>
+
+            <View className="flex-row items-center space-x-4">
+              {/* Notification Icon */}
+              <Pressable
+                className="relative"
+                onPress={toggleNotifications}
+              >
+                <Text className="text-2xl">🔔</Text>
+                {unreadNotificationsCount > 0 && (
+                  <View className="absolute -top-1 -right-1 w-5 h-5 bg-accent-alert rounded-full items-center justify-center">
+                    <Text className="text-white text-xs font-bold">
+                      {unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}
+                    </Text>
+                  </View>
+                )}
+              </Pressable>
+
+              {/* User Profile */}
+              <Pressable>
+                {user ? (
+                  <View className="w-10 h-10 rounded-full overflow-hidden border-2 border-accent-primary">
+                    <Image
+                      source={{ uri: user.avatar }}
+                      className="w-full h-full"
+                      style={{ resizeMode: 'cover' }}
+                    />
+                  </View>
+                ) : (
+                  <View className="w-10 h-10 rounded-full bg-background-surface border-2 border-border items-center justify-center">
+                    <Text className="text-xl">👤</Text>
+                  </View>
+                )}
+              </Pressable>
+            </View>
+          </View>
+
           <Text className="text-text-secondary text-base">
-            Trouvez les meilleurs soins de santé
+            {user
+              ? `Bonjour ${user.name.split(' ')[0]} ! Trouvez les meilleurs soins de santé`
+              : 'Trouvez les meilleurs soins de santé au Gabon'
+            }
           </Text>
         </View>
+
+        {/* Notifications Content */}
+        {notifications.filter(n => !n.isRead).length > 0 && (
+          <Animated.View style={[animatedNotificationStyle]} className="px-6 mb-6">
+            <Text className="text-text-primary text-lg font-semibold mb-3">
+              Notifications récentes
+            </Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <View className="flex-row space-x-4">
+                {notifications
+                  .filter(n => !n.isRead)
+                  .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+                  .slice(0, 4)
+                  .map((notification) => (
+                    <Pressable
+                      key={notification.id}
+                      className={`w-80 rounded-2xl p-4 border ${
+                        notification.priority === 'urgent'
+                          ? 'bg-red-600/10 border-red-600/30'
+                          : notification.priority === 'high'
+                            ? 'bg-orange-600/10 border-orange-600/30'
+                            : 'bg-background-surface border-border'
+                      }`}
+                    >
+                      <View className="flex-row items-start justify-between mb-2">
+                        <Text className={`font-semibold text-sm flex-1 ${
+                          notification.priority === 'urgent'
+                            ? 'text-red-200'
+                            : notification.priority === 'high'
+                              ? 'text-orange-200'
+                              : 'text-text-primary'
+                        }`}>
+                          {notification.title}
+                        </Text>
+                        <Text className={`text-lg ${
+                          notification.type === 'delivery' ? '🏍️' :
+                          notification.type === 'pharmacy' ? '💊' :
+                          notification.type === 'doctor' ? '👨‍⚕️' :
+                          notification.type === 'clinic' ? '🏥' :
+                          notification.type === 'hospital' ? '🏨' :
+                          notification.type === 'tradipractitioner' ? '🌿' : '📢'
+                        }`}>
+                        </Text>
+                      </View>
+                      <Text className={`text-xs leading-4 mb-2 ${
+                        notification.priority === 'urgent'
+                          ? 'text-red-200/80'
+                          : notification.priority === 'high'
+                            ? 'text-orange-200/80'
+                            : 'text-text-secondary'
+                      }`}>
+                        {notification.message.length > 100
+                          ? `${notification.message.substring(0, 100)}...`
+                          : notification.message
+                        }
+                      </Text>
+                      {notification.fromProvider && (
+                        <Text className="text-xs text-accent-primary font-medium">
+                          De: {notification.fromProvider}
+                        </Text>
+                      )}
+                    </Pressable>
+                  ))}
+              </View>
+            </ScrollView>
+          </Animated.View>
+        )}
 
 
         {/* Filter Chips */}

@@ -94,6 +94,22 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
+        name="messages"
+        options={{
+          title: 'Messages',
+          tabBarAccessibilityLabel: 'Messages',
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons
+              name={focused ? 'chatbubbles' : 'chatbubbles-outline'}
+              size={size}
+              color={color}
+              accessibilityLabel="Icône Messages"
+            />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
         name="bookings"
         options={{
           title: 'Réservations',
