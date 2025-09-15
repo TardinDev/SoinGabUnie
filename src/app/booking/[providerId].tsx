@@ -94,8 +94,10 @@ export default function BookingScreen() {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
       Alert.alert(
-        'Réservation confirmée',
-        `Votre demande de rendez-vous avec ${provider.name} a été envoyée. Vous recevrez une confirmation prochainement.`,
+        provider.type === 'delivery' ? 'Demande envoyée' : 'Réservation confirmée',
+        provider.type === 'delivery'
+          ? `Votre demande de livraison a été envoyée à ${provider.name}. Il vous contactera pour confirmer et organiser la livraison.`
+          : `Votre demande de rendez-vous avec ${provider.name} a été envoyée. Vous recevrez une confirmation prochainement.`,
         [
           {
             text: 'OK',
@@ -135,7 +137,7 @@ export default function BookingScreen() {
         </Pressable>
         <View className="flex-1">
           <Text className="text-text-primary text-lg font-bold">
-            Réservation
+            {provider.type === 'delivery' ? 'Demande de livraison' : 'Réservation'}
           </Text>
           <Text className="text-text-secondary text-sm">
             {provider.name}
@@ -191,122 +193,185 @@ export default function BookingScreen() {
             </View>
           </View>
 
-          {/* Appointment Details */}
+          {/* Delivery/Appointment Details */}
           <View className="bg-background-surface border border-border rounded-2xl p-6">
             <Text className="text-text-primary text-lg font-semibold mb-4">
-              Détails du rendez-vous
+              {provider.type === 'delivery' ? 'Détails de la livraison' : 'Détails du rendez-vous'}
             </Text>
 
             <View className="space-y-4">
-              <View>
-                <Text className="text-text-primary font-medium mb-2">
-                  Motif de consultation *
-                </Text>
-                <TextInput
-                  className="bg-background-primary border border-border rounded-xl px-4 py-3 text-text-primary"
-                  placeholder="Ex: Consultation générale, urgence..."
-                  placeholderTextColor="#B4B8C5"
-                  value={formData.reason}
-                  onChangeText={(value) => updateField('reason', value)}
-                  multiline
-                  numberOfLines={3}
-                  textAlignVertical="top"
-                />
-                {errors.reason && (
-                  <Text className="text-accent-alert text-sm mt-1">
-                    {errors.reason}
-                  </Text>
-                )}
-              </View>
-
-              <View>
-                <Text className="text-text-primary font-medium mb-2">
-                  Date souhaitée *
-                </Text>
-                <TextInput
-                  className="bg-background-primary border border-border rounded-xl px-4 py-3 text-text-primary"
-                  placeholder="YYYY-MM-DD"
-                  placeholderTextColor="#B4B8C5"
-                  value={formData.date}
-                  onChangeText={(value) => updateField('date', value)}
-                />
-                <Text className="text-text-secondary text-xs mt-1">
-                  Format: YYYY-MM-DD (ex: 2024-03-15)
-                </Text>
-                {errors.date && (
-                  <Text className="text-accent-alert text-sm mt-1">
-                    {errors.date}
-                  </Text>
-                )}
-              </View>
-
-              <View>
-                <Text className="text-text-primary font-medium mb-3">
-                  Heure préférée *
-                </Text>
-                <View className="flex-row flex-wrap">
-                  {TIME_SLOTS.map((time) => (
-                    <Pressable
-                      key={time}
-                      onPress={() => updateField('time', time)}
-                      className={`px-4 py-2 rounded-xl mr-3 mb-3 border ${
-                        formData.time === time
-                          ? 'bg-accent-primary border-accent-primary'
-                          : 'bg-background-primary border-border'
-                      }`}
-                    >
-                      <Text
-                        className={`font-medium ${
-                          formData.time === time
-                            ? 'text-white'
-                            : 'text-text-secondary'
-                        }`}
-                      >
-                        {time}
+              {provider.type === 'delivery' && (
+                <>
+                  <View>
+                    <Text className="text-text-primary font-medium mb-2">
+                      Code pharmacien *
+                    </Text>
+                    <TextInput
+                      className="bg-background-primary border border-border rounded-xl px-4 py-3 text-text-primary text-center text-lg font-mono"
+                      placeholder="Ex: PH123A4"
+                      placeholderTextColor="#B4B8C5"
+                      value={formData.reason}
+                      onChangeText={(value) => updateField('reason', value.toUpperCase())}
+                      autoCapitalize="characters"
+                    />
+                    <Text className="text-text-secondary text-xs mt-1">
+                      Code fourni par la pharmacie lors de la commande
+                    </Text>
+                    {errors.reason && (
+                      <Text className="text-accent-alert text-sm mt-1">
+                        {errors.reason}
                       </Text>
-                    </Pressable>
-                  ))}
-                </View>
-                {errors.time && (
-                  <Text className="text-accent-alert text-sm mt-1">
-                    {errors.time}
-                  </Text>
-                )}
-              </View>
+                    )}
+                  </View>
+                  <View>
+                    <Text className="text-text-primary font-medium mb-2">
+                      Adresse de livraison *
+                    </Text>
+                    <TextInput
+                      className="bg-background-primary border border-border rounded-xl px-4 py-3 text-text-primary"
+                      placeholder="Votre adresse complète"
+                      placeholderTextColor="#B4B8C5"
+                      value={formData.notes}
+                      onChangeText={(value) => updateField('notes', value)}
+                      multiline
+                      numberOfLines={3}
+                      textAlignVertical="top"
+                    />
+                    {errors.notes && (
+                      <Text className="text-accent-alert text-sm mt-1">
+                        {errors.notes}
+                      </Text>
+                    )}
+                  </View>
+                </>
+              )}
 
-              <View>
-                <Text className="text-text-primary font-medium mb-2">
-                  Notes additionnelles
-                </Text>
-                <TextInput
-                  className="bg-background-primary border border-border rounded-xl px-4 py-3 text-text-primary"
-                  placeholder="Informations complémentaires..."
-                  placeholderTextColor="#B4B8C5"
-                  value={formData.notes}
-                  onChangeText={(value) => updateField('notes', value)}
-                  multiline
-                  numberOfLines={3}
-                  textAlignVertical="top"
-                />
-                {errors.notes && (
-                  <Text className="text-accent-alert text-sm mt-1">
-                    {errors.notes}
+              {provider.type !== 'delivery' && (
+                <View>
+                  <Text className="text-text-primary font-medium mb-2">
+                    Motif de consultation *
                   </Text>
-                )}
-              </View>
+                  <TextInput
+                    className="bg-background-primary border border-border rounded-xl px-4 py-3 text-text-primary"
+                    placeholder="Ex: Consultation générale, urgence..."
+                    placeholderTextColor="#B4B8C5"
+                    value={formData.reason}
+                    onChangeText={(value) => updateField('reason', value)}
+                    multiline
+                    numberOfLines={3}
+                    textAlignVertical="top"
+                  />
+                  {errors.reason && (
+                    <Text className="text-accent-alert text-sm mt-1">
+                      {errors.reason}
+                    </Text>
+                  )}
+                </View>
+              )}
+
+              {provider.type !== 'delivery' && (
+                <>
+                  <View>
+                    <Text className="text-text-primary font-medium mb-2">
+                      Date souhaitée *
+                    </Text>
+                    <TextInput
+                      className="bg-background-primary border border-border rounded-xl px-4 py-3 text-text-primary"
+                      placeholder="YYYY-MM-DD"
+                      placeholderTextColor="#B4B8C5"
+                      value={formData.date}
+                      onChangeText={(value) => updateField('date', value)}
+                    />
+                    <Text className="text-text-secondary text-xs mt-1">
+                      Format: YYYY-MM-DD (ex: 2024-03-15)
+                    </Text>
+                    {errors.date && (
+                      <Text className="text-accent-alert text-sm mt-1">
+                        {errors.date}
+                      </Text>
+                    )}
+                  </View>
+
+                  <View>
+                    <Text className="text-text-primary font-medium mb-3">
+                      Heure préférée *
+                    </Text>
+                    <View className="flex-row flex-wrap">
+                      {TIME_SLOTS.map((time) => (
+                        <Pressable
+                          key={time}
+                          onPress={() => updateField('time', time)}
+                          className={`px-4 py-2 rounded-xl mr-3 mb-3 border ${
+                            formData.time === time
+                              ? 'bg-accent-primary border-accent-primary'
+                              : 'bg-background-primary border-border'
+                          }`}
+                        >
+                          <Text
+                            className={`font-medium ${
+                              formData.time === time
+                                ? 'text-white'
+                                : 'text-text-secondary'
+                            }`}
+                          >
+                            {time}
+                          </Text>
+                        </Pressable>
+                      ))}
+                    </View>
+                    {errors.time && (
+                      <Text className="text-accent-alert text-sm mt-1">
+                        {errors.time}
+                      </Text>
+                    )}
+                  </View>
+
+                  <View>
+                    <Text className="text-text-primary font-medium mb-2">
+                      Notes additionnelles
+                    </Text>
+                    <TextInput
+                      className="bg-background-primary border border-border rounded-xl px-4 py-3 text-text-primary"
+                      placeholder="Informations complémentaires..."
+                      placeholderTextColor="#B4B8C5"
+                      value={formData.notes}
+                      onChangeText={(value) => updateField('notes', value)}
+                      multiline
+                      numberOfLines={3}
+                      textAlignVertical="top"
+                    />
+                    {errors.notes && (
+                      <Text className="text-accent-alert text-sm mt-1">
+                        {errors.notes}
+                      </Text>
+                    )}
+                  </View>
+                </>
+              )}
             </View>
           </View>
 
           {/* Important Notice */}
-          <View className="bg-yellow-600/10 border border-yellow-600/30 rounded-2xl p-4">
+          <View className={`border rounded-2xl p-4 ${
+            provider.type === 'delivery'
+              ? 'bg-orange-600/10 border-orange-600/30'
+              : 'bg-yellow-600/10 border-yellow-600/30'
+          }`}>
             <View className="flex-row items-start">
-              <Text className="text-2xl mr-3">ℹ️</Text>
+              <Text className="text-2xl mr-3">{provider.type === 'delivery' ? '🏍️' : 'ℹ️'}</Text>
               <View className="flex-1">
-                <Text className="text-yellow-200 font-semibold mb-1">
-                  Important
+                <Text className={`font-semibold mb-1 ${
+                  provider.type === 'delivery' ? 'text-orange-200' : 'text-yellow-200'
+                }`}>
+                  {provider.type === 'delivery' ? 'Comment ça marche' : 'Important'}
                 </Text>
-                <Text className="text-yellow-200/80 text-sm leading-5">
-                  Votre demande sera envoyée au prestataire. Vous recevrez une confirmation par SMS ou appel téléphonique.
+                <Text className={`text-sm leading-5 ${
+                  provider.type === 'delivery' ? 'text-orange-200/80' : 'text-yellow-200/80'
+                }`}>
+                  {provider.type === 'delivery'
+                    ? 'Votre demande sera envoyée au livreur. Il vous contactera pour confirmer et récupérer vos médicaments. Paiement par AirtelMoney ou MoovMoney.'
+                    : 'Votre demande sera envoyée au prestataire. Vous recevrez une confirmation par SMS ou appel téléphonique.'
+                  }
                 </Text>
               </View>
             </View>
@@ -319,7 +384,9 @@ export default function BookingScreen() {
             className={`py-4 rounded-2xl ${
               isSubmitting
                 ? 'bg-background-surface border border-border'
-                : 'bg-accent-primary active:opacity-80'
+                : provider.type === 'delivery'
+                  ? 'bg-orange-600 active:opacity-80'
+                  : 'bg-accent-primary active:opacity-80'
             }`}
           >
             <Text
@@ -327,7 +394,12 @@ export default function BookingScreen() {
                 isSubmitting ? 'text-text-secondary' : 'text-white'
               }`}
             >
-              {isSubmitting ? 'Envoi en cours...' : 'Confirmer la réservation'}
+              {isSubmitting
+                ? 'Envoi en cours...'
+                : provider.type === 'delivery'
+                  ? 'Contacter le livreur'
+                  : 'Confirmer la réservation'
+              }
             </Text>
           </Pressable>
         </View>

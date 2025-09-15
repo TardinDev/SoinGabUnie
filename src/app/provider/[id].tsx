@@ -113,7 +113,19 @@ export default function ProviderDetailsScreen() {
                 <Text className="text-text-secondary text-sm">
                   ⭐ {provider.rating} ({provider.reviewCount} avis)
                 </Text>
+                {provider.type === 'delivery' && provider.deliveryFee && (
+                  <Text className="text-accent-primary text-sm font-semibold">
+                    {provider.deliveryFee} FCFA
+                  </Text>
+                )}
               </View>
+              {provider.type === 'delivery' && provider.estimatedTime && (
+                <View className="mb-3">
+                  <Text className="text-accent-secondary text-sm font-semibold">
+                    ⏱️ Livraison en {provider.estimatedTime}
+                  </Text>
+                </View>
+              )}
             </View>
             <View className={`px-3 py-2 rounded-xl ${
               provider.isOpen ? 'bg-accent-secondary' : 'bg-accent-alert'
@@ -133,13 +145,15 @@ export default function ProviderDetailsScreen() {
             ))}
           </View>
 
-          {/* Book Button */}
+          {/* Action Button */}
           <Pressable
             onPress={navigateToBooking}
-            className="bg-accent-primary py-4 rounded-2xl active:opacity-80"
+            className={`py-4 rounded-2xl active:opacity-80 ${
+              provider.type === 'delivery' ? 'bg-orange-600' : 'bg-accent-primary'
+            }`}
           >
             <Text className="text-white text-center text-lg font-semibold">
-              Prendre rendez-vous
+              {provider.type === 'delivery' ? 'Demander une livraison' : 'Prendre rendez-vous'}
             </Text>
           </Pressable>
         </View>

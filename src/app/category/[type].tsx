@@ -12,6 +12,7 @@ const CATEGORY_TITLES: Record<ServiceType, string> = {
   clinic: 'Cliniques',
   hospital: 'Hôpitaux',
   tradipractitioner: 'Tradipraticiens',
+  delivery: 'Livreurs Disponibles',
 };
 
 const CATEGORY_DESCRIPTIONS: Record<ServiceType, string> = {
@@ -20,6 +21,7 @@ const CATEGORY_DESCRIPTIONS: Record<ServiceType, string> = {
   clinic: 'Découvrez les cliniques spécialisées',
   hospital: 'Accédez aux hôpitaux de la région',
   tradipractitioner: 'Consultez des tradipraticiens expérimentés',
+  delivery: 'Choisissez votre livreur pour vos médicaments',
 };
 
 const SORT_OPTIONS = [
@@ -167,7 +169,19 @@ export default function CategoryScreen() {
                       <Text className="text-text-secondary text-sm">
                         ⭐ {provider.rating} ({provider.reviewCount} avis)
                       </Text>
+                      {provider.type === 'delivery' && provider.deliveryFee && (
+                        <Text className="text-accent-primary text-sm font-medium">
+                          {provider.deliveryFee} FCFA
+                        </Text>
+                      )}
                     </View>
+                    {provider.type === 'delivery' && provider.estimatedTime && (
+                      <View className="mb-3">
+                        <Text className="text-accent-secondary text-sm font-medium">
+                          ⏱️ {provider.estimatedTime}
+                        </Text>
+                      </View>
+                    )}
                     <Text className="text-text-secondary text-sm leading-5 mb-3">
                       {provider.description.length > 100
                         ? `${provider.description.substring(0, 100)}...`
