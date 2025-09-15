@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { View, Text, ScrollView, Pressable, Image } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, runOnJS } from 'react-native-reanimated';
-import { getAllProviders, getNotifications, getCurrentUser, getUnreadNotificationsCount } from '../../utils/mockData';
+import { getAllProviders, getNotifications, getCurrentUser, getUnreadNotificationsCount, getUpcomingEventsCount } from '../../utils/mockData';
 import type { ServiceType, Provider, Notification, User } from '../../types';
 
 const SERVICES = [
@@ -50,11 +50,16 @@ export default function HomeScreen() {
     queryKey: ['user'],
     queryFn: async (): Promise<User> => {
       await new Promise(resolve => setTimeout(resolve, 100));
-      return getCurrentUser();
+      const user = getCurrentUser();
+      if (!user) {
+        throw new Error("Aucun utilisateur trouvé");
+      }
+      return user;
     },
   });
 
   const unreadNotificationsCount = getUnreadNotificationsCount();
+  const upcomingEventsCount = getUpcomingEventsCount();
 
   const toggleFilter = (filterId: string) => {
     setActiveFilters(prev =>
@@ -93,6 +98,32 @@ export default function HomeScreen() {
       opacity: notificationOpacity.value,
       height: notificationHeight.value * 200, // Hauteur maximale de 200px
       overflow: 'hidden',
+    };
+  });
+
+  // Animation pour l'icône de feu
+  const fireScale = useSharedValue(1);
+  const fireOpacity = useSharedValue(0.8);
+
+  const animateFireIcon = () => {
+    fireScale.value = withTiming(1.2, { duration: 800 }, () => {
+      fireScale.value = withTiming(1, { duration: 800 });
+    });
+    fireOpacity.value = withTiming(1, { duration: 400 }, () => {
+      fireOpacity.value = withTiming(0.8, { duration: 400 });
+    });
+  };
+
+  // Démarre l'animation en boucle
+  React.useEffect(() => {
+    const interval = setInterval(animateFireIcon, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const animatedFireStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: fireScale.value }],
+      opacity: fireOpacity.value,
     };
   });
 
@@ -298,7 +329,7 @@ export default function HomeScreen() {
                   index === SERVICES.length - 1 && SERVICES.length % 2 !== 0 ? 'w-full' : ''
                 }`}
               >
-                <View className="h-full">
+                <View className="h-full relative">
                   <View className="flex-[3] w-full">
                     <Image
                       source={{ uri: service.image }}
@@ -307,9 +338,23 @@ export default function HomeScreen() {
                     />
                   </View>
                   <View className="flex-[1] px-3 py-2 justify-center">
-                    <Text className="text-text-primary font-semibold text-center text-sm">
-                      {service.title}
-                    </Text>
+                    {service.type === 'tradipractitioner' ? (
+                      <View className="flex-row items-center justify-center space-x-1">
+                        <Text className="text-text-primary font-semibold text-center text-sm">
+                          {service.title}
+                        </Text>
+                        <Animated.View style={[animatedFireStyle]} className="flex-row items-center">
+                          <Text style={{ fontSize: 14 }}>🔥</Text>
+                          <View className="bg-accent-alert rounded-full px-1.5 py-0.5 ml-1">
+                            <Text className="text-white text-xs font-bold">{upcomingEventsCount}</Text>
+                          </View>
+                        </Animated.View>
+                      </View>
+                    ) : (
+                      <Text className="text-text-primary font-semibold text-center text-sm">
+                        {service.title}
+                      </Text>
+                    )}
                   </View>
                 </View>
               </Pressable>
