@@ -68,12 +68,9 @@ export function EventsSection({ events }: EventsSectionProps) {
                   </View>
                 </View>
 
-                <View className="flex-row items-center justify-between mb-2">
-                  <Text className="text-accent-secondary text-xs font-medium">
-                    {event.price}
-                  </Text>
+                <View className="flex-row items-center justify-end mb-2">
                   <Text className="text-text-secondary text-xs">
-                    {event.currentParticipants}/{event.maxParticipants}
+                    {event.currentParticipants}/{event.maxParticipants} participants
                   </Text>
                 </View>
 

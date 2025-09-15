@@ -10,3 +10,4 @@ export { DateTimePicker } from './DateTimePicker';
 export { ProviderInfo } from './ProviderInfo';
 export { EventsSection } from './EventsSection';
 export { SearchAndSort } from './SearchAndSort';
+export { TraditionalProductsSection } from './TraditionalProductsSection';
