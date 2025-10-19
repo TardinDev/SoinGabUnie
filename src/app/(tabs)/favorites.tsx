@@ -1,14 +1,12 @@
 import { View, Text, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import ScreenWrapper from '../../components/ScreenWrapper';
 
 export default function FavoritesScreen() {
   const insets = useSafeAreaInsets();
 
   return (
-    <View
-      className="flex-1 bg-background-primary"
-      style={{ paddingTop: insets.top }}
-    >
+    <ScreenWrapper style={{ paddingTop: insets.top }}>
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View className="px-6 py-6">
@@ -33,6 +31,6 @@ export default function FavoritesScreen() {
           </Text>
         </View>
       </ScrollView>
-    </View>
+    </ScreenWrapper>
   );
 }

@@ -3,6 +3,7 @@ import { View, Text, ScrollView, Pressable, TextInput } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { getMessages, getCurrentUser } from '../../utils/mockData';
+import ScreenWrapper from '../../components/ScreenWrapper';
 import type { Message, User } from '../../types';
 
 export default function MessagesScreen() {
@@ -42,10 +43,7 @@ export default function MessagesScreen() {
   };
 
   return (
-    <View
-      className="flex-1 bg-background-primary"
-      style={{ paddingTop: insets.top }}
-    >
+    <ScreenWrapper style={{ paddingTop: insets.top }}>
       {/* Header */}
       <View className="px-6 py-4 border-b border-border">
         <Text className="text-text-primary text-2xl font-bold mb-2">
@@ -151,6 +149,6 @@ export default function MessagesScreen() {
           )}
         </View>
       </ScrollView>
-    </View>
+    </ScreenWrapper>
   );
 }

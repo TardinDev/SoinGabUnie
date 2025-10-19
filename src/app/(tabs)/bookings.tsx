@@ -1,6 +1,7 @@
 import { View, Text, ScrollView, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBookingStore } from '../../stores/bookingStore';
+import ScreenWrapper from '../../components/ScreenWrapper';
 
 export default function BookingsScreen() {
   const insets = useSafeAreaInsets();
@@ -37,10 +38,7 @@ export default function BookingsScreen() {
   };
 
   return (
-    <View
-      className="flex-1 bg-background-primary"
-      style={{ paddingTop: insets.top }}
-    >
+    <ScreenWrapper style={{ paddingTop: insets.top }}>
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View className="px-6 py-6">
@@ -120,6 +118,6 @@ export default function BookingsScreen() {
           </View>
         )}
       </ScrollView>
-    </View>
+    </ScreenWrapper>
   );
 }

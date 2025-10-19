@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { View, ScrollView } from 'react-native';
+import { ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, runOnJS } from 'react-native-reanimated';
 import { getAllProviders, getNotifications, getCurrentUser, getUnreadNotificationsCount, getUpcomingEventsCount } from '../../utils/mockData';
 import { Header, NotificationPanel, FilterChips, ServiceGrid, DeliverySection, ProviderSection } from '../../components';
+import ScreenWrapper from '../../components/ScreenWrapper';
 import type { ServiceType, Provider, Notification, User } from '../../types';
 
 const SERVICES = [
@@ -97,7 +98,7 @@ export default function HomeScreen() {
   const animatedNotificationStyle = useAnimatedStyle(() => {
     return {
       opacity: notificationOpacity.value,
-      height: notificationHeight.value * 200, // Hauteur maximale de 200px
+      height: notificationHeight.value * 200, 
       overflow: 'hidden',
     };
   });
@@ -129,10 +130,7 @@ export default function HomeScreen() {
   });
 
   return (
-    <View
-      className="flex-1 bg-background-primary"
-      style={{ paddingTop: insets.top }}
-    >
+    <ScreenWrapper style={{ paddingTop: insets.top }}>
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <Header
           user={user}
@@ -174,6 +172,6 @@ export default function HomeScreen() {
           variant="popular"
         />
       </ScrollView>
-    </View>
+    </ScreenWrapper>
   );
 }
